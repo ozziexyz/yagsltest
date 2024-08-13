@@ -5,9 +5,15 @@ import java.util.function.DoubleSupplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.ReplanningConfig;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -29,6 +35,7 @@ public class Swerve extends SubsystemBase {
         }
         swerve.setHeadingCorrection(false);
         swerve.setCosineCompensator(false);
+        configurePathPlanner();
     }
 
     public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier rotation) {
@@ -44,6 +51,27 @@ public class Swerve extends SubsystemBase {
     public void driveFieldOriented(ChassisSpeeds velocity) {
         swerve.driveFieldOriented(velocity);
     }
+
+    public void configurePathPlanner() {
+        AutoBuilder.configureHolonomic(
+            this::getPose,
+            this::resetOdometry, 
+            this::getRobotVelocity, 
+            this::setChassisSpeeds,
+            new HolonomicPathFollowerConfig(
+                Constants.TRANSLATION_PID,
+                Constants.ANGLE_PID,
+                4.5,
+                swerve.swerveDriveConfiguration.getDriveBaseRadiusMeters(),
+                new ReplanningConfig()
+            ),
+            () -> {
+                var alliance = DriverStation.getAlliance();
+                return alliance.isPresent() ? alliance.get() == DriverStation.Alliance.Red : false;
+            },
+            this
+        );
+    }
  
     @AutoLogOutput
     public Pose2d getPose() {
@@ -52,5 +80,23 @@ public class Swerve extends SubsystemBase {
 
     @Override
     public void periodic() {
+    }
+
+    public void resetOdometry(Pose2d initialHolonomicPose) {
+        swerve.resetOdometry(initialHolonomicPose);
+    }
+
+    public ChassisSpeeds getRobotVelocity() {
+        return swerve.getRobotVelocity();
+    }
+
+    public void setChassisSpeeds(ChassisSpeeds velocity) {
+        swerve.setChassisSpeeds(velocity);
+    }
+
+    public Command getAutonomousCommand() {
+        String autoName = Constants.AUTO_NAME;
+        swerve.resetOdometry(PathPlannerAuto.getStaringPoseFromAutoFile(autoName));
+        return AutoBuilder.buildAuto(autoName);
     }
 }

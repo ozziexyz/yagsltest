@@ -4,13 +4,15 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 public class RobotContainer {
-  public Swerve swerve;
-  public CommandXboxController controller = new CommandXboxController(0);
+  private Swerve swerve;
+  private CommandXboxController controller = new CommandXboxController(0);
 
   public RobotContainer() {
     swerve = new Swerve();
@@ -28,6 +30,6 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return Commands.print("No autonomous command configured");
+    return swerve.getAutonomousCommand();
   }
 }
