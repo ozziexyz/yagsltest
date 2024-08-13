@@ -3,6 +3,7 @@ package frc.robot;
 import java.io.File;
 import java.util.function.DoubleSupplier;
 
+import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.AutoLogOutput;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -12,6 +13,7 @@ import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -76,6 +78,11 @@ public class Swerve extends SubsystemBase {
     @AutoLogOutput
     public Pose2d getPose() {
         return swerve.getPose();
+    }
+
+    @AutoLogOutput
+    public Pose3d getPose3d() {
+        return new Pose3d(swerve.getPose());
     }
 
     @Override
