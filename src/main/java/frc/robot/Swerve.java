@@ -8,6 +8,9 @@ import org.littletonrobotics.junction.AutoLogOutput;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.PathPlannerTrajectory;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.ReplanningConfig;
 
@@ -15,6 +18,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -48,6 +52,22 @@ public class Swerve extends SubsystemBase {
             ChassisSpeeds velocity = swerve.swerveController.getRawTargetSpeeds(xSpeed, ySpeed, omega);
             driveFieldOriented(velocity);
         });
+    }
+
+    public Command driveToPose(Pose2d pose) {
+        PathConstraints constraints = new PathConstraints(
+            swerve.getMaximumVelocity(), 
+            4.0,
+            swerve.getMaximumAngularVelocity(), 
+            Units.degreesToRadians(720)
+        );
+
+        return AutoBuilder.pathfindToPose(
+            pose,
+            constraints,
+            0.0, 
+            0.0
+        );
     }
 
     public void driveFieldOriented(ChassisSpeeds velocity) {
@@ -99,11 +119,5 @@ public class Swerve extends SubsystemBase {
 
     public void setChassisSpeeds(ChassisSpeeds velocity) {
         swerve.setChassisSpeeds(velocity);
-    }
-
-    public Command getAutonomousCommand() {
-        String autoName = Constants.AUTO_NAME;
-        swerve.resetOdometry(PathPlannerAuto.getStaringPoseFromAutoFile(autoName));
-        return AutoBuilder.buildAuto(autoName);
     }
 }
