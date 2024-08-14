@@ -30,6 +30,7 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 public class Swerve extends SubsystemBase {
     private final SwerveDrive swerve;
+    private final PathConstraints pathConstraints;
 
     public Swerve() {
         SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
@@ -42,6 +43,12 @@ public class Swerve extends SubsystemBase {
         swerve.setHeadingCorrection(false);
         swerve.setCosineCompensator(false);
         configurePathPlanner();
+        pathConstraints = new PathConstraints(
+            swerve.getMaximumVelocity(), 
+            4.0,
+            swerve.getMaximumAngularVelocity(), 
+            Units.degreesToRadians(720)
+        );
     }
 
     public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier rotation) {
@@ -55,16 +62,9 @@ public class Swerve extends SubsystemBase {
     }
 
     public Command driveToPose(Pose2d pose) {
-        PathConstraints constraints = new PathConstraints(
-            swerve.getMaximumVelocity(), 
-            4.0,
-            swerve.getMaximumAngularVelocity(), 
-            Units.degreesToRadians(720)
-        );
-
         return AutoBuilder.pathfindToPose(
             pose,
-            constraints,
+            pathConstraints,
             0.0, 
             0.0
         );
